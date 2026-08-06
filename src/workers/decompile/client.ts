@@ -4,6 +4,8 @@ import { DecompileJar, type DecompileResult } from "./types";
 import type { Jar } from "../../utils/Jar";
 import type { DecompileWorker } from "./worker";
 import { toClassFilePath, type ClassName } from "../../utils/Names";
+import {IS_DESKTOP_APP} from "../../site.ts";
+import {sendCefQuery} from "../../compat/cef.ts";
 
 function createWorker() {
     const worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module", name: "decompiler" });
@@ -122,8 +124,15 @@ export async function decompileClass(className: ClassName, jar: Jar): Promise<De
         language: "java",
     };
 
-    const worker = await findWorker();
-    return await worker.decompile(className, jar.name, jar.blob);
+    if (IS_DESKTOP_APP) {
+        return await JSON.parse(await sendCefQuery({
+            action: "decompile",
+            className: className
+        }))
+    } else {
+        const worker = await findWorker();
+        return await worker.decompile(className, jar.name, jar.blob);
+    }
 }
 
 export async function getClassBytecode(className: ClassName, jar: Jar): Promise<DecompileResult> {

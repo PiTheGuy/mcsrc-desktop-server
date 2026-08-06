@@ -4,6 +4,7 @@ import { Tab, CodeTab } from "./tabs";
 import { getInitialState } from "./Permalink";
 import type { ClassFilePath } from "../utils/Names";
 import type { ReferenceKey } from "../workers/jar-index/types";
+import {IS_DESKTOP_APP} from "../site.ts";
 
 const initialState = getInitialState();
 
@@ -28,6 +29,19 @@ export const selectedLines = new BehaviorSubject<SelectedLines | null>(initialSt
 
 export const diffView = new BehaviorSubject<boolean>(!!initialState.diff);
 export const diffLeftSelectedMinecraftVersion = new BehaviorSubject<string | null>(initialState.diff?.leftMinecraftVersion ?? null);
+
+if (IS_DESKTOP_APP) {
+    selectedMinecraftVersion.subscribe(version => {
+        if (version) {
+            window.cefQuery({
+                request: JSON.stringify({
+                    action: "fetch",
+                    version: version,
+                })
+            })
+        }
+    })
+}
 
 // Reset selected lines when file changes (skip initial emission to preserve permalink selection)
 selectedFile.pipe(pairwise()).subscribe(([previousFile, currentFile]) => {

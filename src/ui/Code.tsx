@@ -268,7 +268,7 @@ const Code = () => {
         // new tab opens -> setModel is set from old decompileResult.source
         // -> view is invalidated -> viewstate is lost
         // so this is quite important to keep!
-        if (!tab.key.includes(decompileResult.className)) return;
+        //if (!tab.key.includes(decompileResult.className)) return;
 
         tab.editorRef = editorRef.current;
 
