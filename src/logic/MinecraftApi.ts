@@ -5,6 +5,8 @@ import { selectedMinecraftVersion } from "./State";
 import { remapMinecraftJar } from "../workers/remap/client";
 
 import EXPERIMENTAL_VERSIONS from "./experimental_versions.json";
+import {IS_DESKTOP_APP} from "../site.ts";
+import {sendCefQueryWithProgress} from "../compat/cef.ts";
 
 const CACHE_NAME = 'mcsrc-v1';
 const VERSIONS_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
@@ -216,12 +218,21 @@ async function downloadMinecraftJar(version: VersionListEntry, progress: Behavio
     let mappingsBlob: Blob | null;
 
     try {
-        [rawBlob, mappingsBlob] = await Promise.all([
-            cachedFetch(client.url, (percent) => {
-                progress.next(percent);
-            }),
-            mappings ? cachedFetch(mappings.url) : Promise.resolve(null)
-        ]);
+        if (IS_DESKTOP_APP) {
+            const jarPath = await sendCefQueryWithProgress(
+                { action: "fetch", version: version.id}, newProgress => progress.next(newProgress)
+            )
+            const response = await fetch(jarPath);
+            rawBlob = await response.blob();
+            mappingsBlob = mappings ? await cachedFetch(mappings.url) : null;
+        } else {
+            [rawBlob, mappingsBlob] = await Promise.all([
+                cachedFetch(client.url, (percent) => {
+                    progress.next(percent);
+                }),
+                mappings ? cachedFetch(mappings.url) : Promise.resolve(null)
+            ]);
+        }
     } finally {
         progress.next(undefined);
     }

@@ -69,8 +69,7 @@ export async function getClassBytecode(className: ClassName, jar: Jar) {
 export async function decompileClass(className: ClassName, jar: Jar) {
     try {
         decompilerCounter.next(decompilerCounter.value + 1);
-        let decompileResult = await worker.decompileClass(className, jar);
-        return decompileResult;
+        return await worker.decompileClass(className, jar);
     } finally {
         decompilerCounter.next(decompilerCounter.value - 1);
     }
