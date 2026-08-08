@@ -220,7 +220,7 @@ async function downloadMinecraftJar(version: VersionListEntry, progress: Behavio
     try {
         if (IS_DESKTOP_APP) {
             const jarPath = await sendCefQueryWithProgress(
-                { action: "fetch", version: version.id}, newProgress => progress.next(newProgress)
+                { action: "download", version: version.id}, newProgress => progress.next(newProgress)
             )
             const response = await fetch(jarPath);
             rawBlob = await response.blob();

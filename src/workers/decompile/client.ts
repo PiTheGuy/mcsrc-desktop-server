@@ -6,6 +6,7 @@ import type { DecompileWorker } from "./worker";
 import { toClassFilePath, type ClassName } from "../../utils/Names";
 import {IS_DESKTOP_APP} from "../../site.ts";
 import {sendCefQuery} from "../../compat/cef.ts";
+import type {MinecraftJar} from "../../logic/MinecraftApi.ts";
 
 function createWorker() {
     const worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module", name: "decompiler" });
@@ -112,8 +113,8 @@ export function decompileEntireJar(jar: Jar, options?: DecompileEntireJarOptions
     };
 }
 
-export async function decompileClass(className: ClassName, jar: Jar): Promise<DecompileResult> {
-    const entry = jar.entries[toClassFilePath(className)];
+export async function decompileClass(className: ClassName, jar: MinecraftJar): Promise<DecompileResult> {
+    const entry = jar.jar.entries[toClassFilePath(className)];
 
     if (!entry) return {
         className,
@@ -127,11 +128,12 @@ export async function decompileClass(className: ClassName, jar: Jar): Promise<De
     if (IS_DESKTOP_APP) {
         return await JSON.parse(await sendCefQuery({
             action: "decompile",
-            className: className
+            className: className,
+            version: jar.version
         }))
     } else {
         const worker = await findWorker();
-        return await worker.decompile(className, jar.name, jar.blob);
+        return await worker.decompile(className, jar.jar.name, jar.blob);
     }
 }
 

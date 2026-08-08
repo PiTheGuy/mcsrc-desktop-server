@@ -50,7 +50,7 @@ export function decompileResultPipeline(jar: Observable<MinecraftJar>): Observab
 
             const options = getDecompilerOptions(displayLambdas);
             return from(worker.setOptions(options)).pipe(
-                switchMap(() => from(decompileClass(className, jar.jar)))
+                switchMap(() => from(decompileClass(className, jar)))
             );
         }),
         shareReplay({ bufferSize: 1, refCount: false })
@@ -66,7 +66,7 @@ export async function getClassBytecode(className: ClassName, jar: Jar) {
     }
 }
 
-export async function decompileClass(className: ClassName, jar: Jar) {
+export async function decompileClass(className: ClassName, jar: MinecraftJar) {
     try {
         decompilerCounter.next(decompilerCounter.value + 1);
         return await worker.decompileClass(className, jar);
