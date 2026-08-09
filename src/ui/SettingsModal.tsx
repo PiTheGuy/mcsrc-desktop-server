@@ -7,6 +7,7 @@ import { capturingKeybind, rawKeydownEvent } from "../logic/Keybinds";
 import { BehaviorSubject } from "rxjs";
 import React, { useEffect, useState } from "react";
 import { modalOpen } from "./JarDecompilerModal";
+import {IS_DESKTOP_APP} from "../site.ts";
 
 export const settingsModalOpen = new BehaviorSubject<boolean>(false);
 
@@ -46,18 +47,28 @@ const SettingsTab = () => {
 
 const AdvancedTab = () => (
     <Flex className="settings-tab-content" vertical align="flex-start" gap="small">
-        <Button
-            data-testid="jar-decompiler"
-            icon={<JavaOutlined />}
-            onClick={() => {
-                settingsModalOpen.next(false);
-                modalOpen.next(true);
-            }}
-        >
-            Decompile All
-        </Button>
+        {getDecompileAllButton()}
     </Flex>
 );
+
+function getDecompileAllButton() {
+    let button = <Button
+        data-testid="jar-decompiler"
+        icon={<JavaOutlined />}
+        onClick={() => {
+            settingsModalOpen.next(false);
+            modalOpen.next(true);
+        }}
+        disabled={IS_DESKTOP_APP}
+    >
+        Decompile All
+    </Button>
+    if (IS_DESKTOP_APP) {
+        return <Tooltip title="This action is not supported in the desktop app.">{button}</Tooltip>;
+    } else {
+        return button;
+    }
+}
 
 const SettingsModal = () => {
     const isModalOpen = useObservable(settingsModalOpen);

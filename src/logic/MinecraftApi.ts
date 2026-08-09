@@ -127,6 +127,10 @@ export function isUnobfuscated(version: VersionListEntry): boolean {
 
 function isSupported(version: VersionListEntry): boolean {
     if(isUnobfuscated(version)) return true;
+    if (IS_DESKTOP_APP) {
+        // The desktop app doesn't currently support remapping
+        return false;
+    }
     // This version was released after the first snapshot with official mappings,
     // but its mappings were never published.
     if (version.id === '1.14_combat-3') return false;
