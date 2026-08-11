@@ -119,7 +119,7 @@ export async function decompileClass(className: ClassName, jar: MinecraftJar): P
     if (!entry) return {
         className,
         checksum: 0,
-        jarName: jar.name,
+        jarName: jar.jar.name,
         source: `// Class not found: ${className}`,
         tokens: [],
         language: "java",

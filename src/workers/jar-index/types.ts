@@ -2,6 +2,7 @@ import { load } from "../../../java/build/generated/teavm/wasm-gc/mcsrc.wasm-run
 import indexerWasm from '../../../java/build/generated/teavm/wasm-gc/mcsrc.wasm?url';
 import { openJar, type Jar } from "../../utils/Jar.js";
 import type { ClassFilePath, ClassName } from "../../utils/Names.js";
+import {parseMemberData} from "./client.ts";
 
 export type Class = ClassName;
 export type Method = `${ClassName}:${string}:${string}`;
@@ -93,15 +94,7 @@ export class JarIndexer {
 
     getMemberData = async (): Promise<MemberData[]> => {
         const indexer = await this.getIndexer();
-        const raw = indexer.getMemberData();
-        return raw.map(item => {
-            let parts = item.split("|");
-            return {
-                className: parts[0] as ClassName,
-                methods: parts[1].split(",") as Method[],
-                fields: parts[2].split(",") as Field[]
-            }
-        })
+        return indexer.getMemberData().map(parseMemberData);
     };
 }
 

@@ -8,25 +8,26 @@ export function sendCefQuery(payload: object) : Promise<string> {
     })
 }
 
-type CefFetchMessage =
-    | { type: "progress"; percent: number }
-    | { type: "done"; path: string };
+type CefProgressMessage =
+    | { type: "progress"; progress: number }
+    | { type: "done"; result: any };
 
-export function sendCefQueryWithProgress(payload: object, onProgress: (percent: number) => void): Promise<string> {
+export function sendCefQueryWithProgress(payload: object, onProgress: (percent: number) => void): Promise<any> {
     return new Promise((resolve, reject) => {
         const queryId = window.cefQuery({
             request: JSON.stringify(payload),
             persistent: true,
             onSuccess: (response) => {
-                const message = JSON.parse(response) as CefFetchMessage;
+                const message = JSON.parse(response) as CefProgressMessage;
 
                 if (message.type === "progress") {
-                    onProgress(message.percent);
+                    onProgress(message.progress * 100);
                     return;
                 }
 
+
                 window.cefQueryCancel?.(queryId);
-                resolve(message.path);
+                resolve(message.result);
             },
             onFailure: (error_code, error_message) => {
                 window.cefQueryCancel?.(queryId);

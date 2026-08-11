@@ -1,9 +1,11 @@
 import * as Comlink from "comlink";
 import { BehaviorSubject, distinctUntilChanged, map, shareReplay } from "rxjs";
 import { minecraftJar, type MinecraftJar } from "../../logic/MinecraftApi";
-import type {ClassDataString, JarIndexer, MemberData, ReferenceKey, ReferenceString} from "./types";
+import type {ClassDataString, Field, JarIndexer, MemberData, Method, ReferenceKey, ReferenceString} from "./types";
 import Dexie, { type EntityTable } from "dexie";
 import { isClassFilePath, toClassName, type ClassFilePath, type ClassName } from "../../utils/Names";
+import {sendCefQuery, sendCefQueryWithProgress} from "../../compat/cef.ts";
+import {IS_DESKTOP_APP} from "../../site.ts";
 
 
 export interface ClassData {
@@ -21,6 +23,15 @@ export function parseClassData(data: ClassDataString): ClassData {
         accessFlags: parseInt(accessFlagsStr, 10),
         interfaces: interfacesStr ? interfacesStr.split(",").filter(i => i.length > 0).map(toClassName) : []
     };
+}
+
+export function parseMemberData(data: string): MemberData {
+    const [className, methodsStr, fieldsStr] = data.split("|");
+    return {
+        className: toClassName(className),
+        methods: methodsStr.split(',') as Method[],
+        fields: fieldsStr.split(',') as Field[]
+    }
 }
 
 // Percent complete is total >= 0
@@ -90,9 +101,32 @@ export class JarIndex {
 
     private async indexJar(): Promise<void> {
         if (!this.indexPromise) {
-            this.indexPromise = this.performIndexing();
+            this.indexPromise = IS_DESKTOP_APP ? this.performIndexingOnHost() : this.performIndexing();
         }
         return this.indexPromise;
+    }
+
+    private async performIndexingOnHost(): Promise<void> {
+        try {
+            const startTime = performance.now();
+
+            indexProgress.next(0);
+            console.log(`Indexing minecraft jar using host JVM`);
+
+            await sendCefQueryWithProgress({
+                action: "index",
+                type: "start",
+                version: this.minecraftJar.version,
+            }, progress => indexProgress.next(progress)).then(() => {
+                const endTime = performance.now();
+                const duration = ((endTime - startTime) / 1000).toFixed(2);
+                console.log(`Indexing completed in ${duration} seconds`);
+                indexProgress.next(-1);
+            })
+        } catch (error) {
+            this.indexPromise = null;
+            throw error;
+        }
     }
 
     private async performIndexing(): Promise<void> {
@@ -153,6 +187,14 @@ export class JarIndex {
     async getReference(key: ReferenceKey): Promise<ReferenceString[]> {
         await this.indexJar();
 
+        if (IS_DESKTOP_APP) {
+            return JSON.parse(await sendCefQuery({
+                action: "index",
+                type: "getReference",
+                key: key
+            }))
+        }
+
         let results: Promise<ReferenceString[]>[] = [];
 
         for (const worker of this.workers) {
@@ -164,6 +206,14 @@ export class JarIndex {
 
     async getMemberData(): Promise<MemberData[]> {
         await this.indexJar();
+
+        if (IS_DESKTOP_APP) {
+            return JSON.parse(await sendCefQuery({
+                action: "index",
+                type: "getMemberData",
+                version: this.minecraftJar.version,
+            })).map(parseMemberData);
+        }
 
         let results: Promise<MemberData[]>[] = [];
 
@@ -187,12 +237,21 @@ export class JarIndex {
         try {
             await this.indexJar();
 
-            let results: Promise<ClassDataString[]>[] = [];
-            for (const worker of this.workers) {
-                results.push(worker.c.getClassData());
-            }
+            let classDataStrings : ClassDataString[];
+            if (IS_DESKTOP_APP) {
+                classDataStrings = JSON.parse(await sendCefQuery({
+                    action: "index",
+                    type: "getClassData",
+                    version: this.minecraftJar.version,
+                }))
+            } else {
+                let results: Promise<ClassDataString[]>[] = [];
+                for (const worker of this.workers) {
+                    results.push(worker.c.getClassData());
+                }
 
-            const classDataStrings = await Promise.all(results).then(arrays => arrays.flat());
+                classDataStrings = await Promise.all(results).then(arrays => arrays.flat());
+            }
             this.classDataCache = classDataStrings.map(parseClassData);
 
             await db.classData.put({
