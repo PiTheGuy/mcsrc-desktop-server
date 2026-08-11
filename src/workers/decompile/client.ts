@@ -7,6 +7,7 @@ import { toClassFilePath, type ClassName } from "../../utils/Names";
 import {IS_DESKTOP_APP} from "../../site.ts";
 import {sendCefQuery} from "../../compat/cef.ts";
 import type {MinecraftJar} from "../../logic/MinecraftApi.ts";
+import {displayLambdas} from "../../logic/Settings.ts";
 
 function createWorker() {
     const worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module", name: "decompiler" });
@@ -130,7 +131,8 @@ export async function decompileClass(className: ClassName, minecraftJar: Minecra
         return await JSON.parse(await sendCefQuery({
             action: "decompile",
             className: className,
-            version: minecraftJar.version
+            version: minecraftJar.version,
+            displayLambdas: displayLambdas.value
         }))
     } else {
         const worker = await findWorker();
