@@ -1,8 +1,8 @@
 import { load } from "../../../java/build/generated/teavm/wasm-gc/mcsrc.wasm-runtime.js";
 import indexerWasm from '../../../java/build/generated/teavm/wasm-gc/mcsrc.wasm?url';
 import { openJar, type Jar } from "../../utils/Jar.js";
-import type { ClassFilePath, ClassName } from "../../utils/Names.js";
-import {parseMemberData} from "./client.ts";
+import {type ClassFilePath, type ClassName, toClassName} from "../../utils/Names.js";
+import {parseMemberData} from "./parse.ts";
 
 export type Class = ClassName;
 export type Method = `${ClassName}:${string}:${string}`;

@@ -6,8 +6,6 @@ import { type DecompileResult, type DecompileOption, type DecompileData, Decompi
 import { openJar } from "../../utils/Jar";
 import { JarIndexer } from "../jar-index/types";
 import { classNameFromDottedClassName, toClassName, type ClassName } from "../../utils/Names";
-import {IS_DESKTOP_APP} from "../../site.ts";
-import {sendCefQuery} from "../../compat/cef.ts";
 
 export class DecompileWorker {
     #lastPromise: Promise<unknown> | undefined = undefined;

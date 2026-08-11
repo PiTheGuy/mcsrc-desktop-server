@@ -1,11 +1,12 @@
 import * as Comlink from "comlink";
 import { BehaviorSubject, distinctUntilChanged, map, shareReplay } from "rxjs";
 import { minecraftJar, type MinecraftJar } from "../../logic/MinecraftApi";
-import type {ClassDataString, Field, JarIndexer, MemberData, Method, ReferenceKey, ReferenceString} from "./types";
+import type { ClassDataString, JarIndexer, MemberData, ReferenceKey,  ReferenceString } from "./types";
 import Dexie, { type EntityTable } from "dexie";
-import { isClassFilePath, toClassName, type ClassFilePath, type ClassName } from "../../utils/Names";
+import { isClassFilePath, type ClassFilePath, type ClassName } from "../../utils/Names";
 import {sendCefQuery, sendCefQueryWithProgress} from "../../compat/cef.ts";
 import {IS_DESKTOP_APP} from "../../site.ts";
+import {parseClassData, parseMemberData} from "./parse.ts";
 
 
 export interface ClassData {
@@ -13,25 +14,6 @@ export interface ClassData {
     superName: ClassName | "";
     accessFlags: number;
     interfaces: ClassName[];
-}
-
-export function parseClassData(data: ClassDataString): ClassData {
-    const [className, superName, accessFlagsStr, interfacesStr] = data.split("|");
-    return {
-        className: toClassName(className),
-        superName: superName ? toClassName(superName) : "",
-        accessFlags: parseInt(accessFlagsStr, 10),
-        interfaces: interfacesStr ? interfacesStr.split(",").filter(i => i.length > 0).map(toClassName) : []
-    };
-}
-
-export function parseMemberData(data: string): MemberData {
-    const [className, methodsStr, fieldsStr] = data.split("|");
-    return {
-        className: toClassName(className),
-        methods: methodsStr.split(',') as Method[],
-        fields: fieldsStr.split(',') as Field[]
-    }
 }
 
 // Percent complete is total >= 0
