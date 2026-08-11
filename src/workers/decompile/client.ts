@@ -113,13 +113,14 @@ export function decompileEntireJar(jar: Jar, options?: DecompileEntireJarOptions
     };
 }
 
-export async function decompileClass(className: ClassName, jar: MinecraftJar): Promise<DecompileResult> {
-    const entry = jar.jar.entries[toClassFilePath(className)];
+export async function decompileClass(className: ClassName, minecraftJar: MinecraftJar): Promise<DecompileResult> {
+    let jar = minecraftJar.jar;
+    const entry = jar.entries[toClassFilePath(className)];
 
     if (!entry) return {
         className,
         checksum: 0,
-        jarName: jar.jar.name,
+        jarName: jar.name,
         source: `// Class not found: ${className}`,
         tokens: [],
         language: "java",
@@ -129,15 +130,16 @@ export async function decompileClass(className: ClassName, jar: MinecraftJar): P
         return await JSON.parse(await sendCefQuery({
             action: "decompile",
             className: className,
-            version: jar.version
+            version: minecraftJar.version
         }))
     } else {
         const worker = await findWorker();
-        return await worker.decompile(className, jar.jar.name, jar.blob);
+        return await worker.decompile(className, jar.name, minecraftJar.blob);
     }
 }
 
-export async function getClassBytecode(className: ClassName, jar: Jar): Promise<DecompileResult> {
+export async function getClassBytecode(className: ClassName, minecraftJar: MinecraftJar): Promise<DecompileResult> {
+    let jar = minecraftJar.jar;
     const entry = jar.entries[toClassFilePath(className)];
 
     if (!entry) return {
@@ -148,6 +150,14 @@ export async function getClassBytecode(className: ClassName, jar: Jar): Promise<
         tokens: [],
         language: "bytecode",
     };
+
+    if (IS_DESKTOP_APP) {
+        return await JSON.parse(await sendCefQuery({
+            action: "bytecode",
+            className: className,
+            version: minecraftJar.version
+        }))
+    }
 
     const classData: ArrayBufferLike[] = [];
     const data = await entry.bytes();

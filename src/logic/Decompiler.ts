@@ -45,7 +45,7 @@ export function decompileResultPipeline(jar: Observable<MinecraftJar>): Observab
 
             const className = classNameFromClassFilePath(file);
             if (bytecode) {
-                return from(getClassBytecode(className, jar.jar));
+                return from(getClassBytecode(className, jar));
             }
 
             const options = getDecompilerOptions(displayLambdas);
@@ -57,7 +57,7 @@ export function decompileResultPipeline(jar: Observable<MinecraftJar>): Observab
     );
 }
 
-export async function getClassBytecode(className: ClassName, jar: Jar) {
+export async function getClassBytecode(className: ClassName, jar: MinecraftJar) {
     try {
         decompilerCounter.next(decompilerCounter.value + 1);
         return await worker.getClassBytecode(className, jar);
