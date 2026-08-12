@@ -6,6 +6,8 @@ import SettingsModal from "./SettingsModal";
 import StructureModal from "./StructureModal";
 import { JarDecompilerModal, JarDecompilerProgressModal } from "./JarDecompilerModal";
 import IndexProgressNotification from "./IndexProgressNotification";
+import {IS_DESKTOP_APP} from "../site.ts";
+import UpdateRequiredModal from "./UpdateRequiredModal.tsx";
 
 const Modals = () => {
     return (
@@ -14,6 +16,7 @@ const Modals = () => {
             <ProgressModal />
             {ENABLE_JAVADOC_EDITOR && <JavadocModal />}
             <AboutModal />
+            {IS_DESKTOP_APP && <UpdateRequiredModal />}
             <SettingsModal />
             <StructureModal />
             <JarDecompilerModal />
