@@ -6,7 +6,7 @@ import { remapMinecraftJar } from "../workers/remap/client";
 
 import EXPERIMENTAL_VERSIONS from "./experimental_versions.json";
 import {IS_DESKTOP_APP} from "../site.ts";
-import {sendCefQueryWithProgress} from "../compat/cef.ts";
+import {sendCefQueryWithProgress} from "../cef/cef.ts";
 
 const CACHE_NAME = 'mcsrc-v1';
 const VERSIONS_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";

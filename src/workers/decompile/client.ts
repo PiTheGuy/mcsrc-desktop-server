@@ -5,7 +5,7 @@ import type { Jar } from "../../utils/Jar";
 import type { DecompileWorker } from "./worker";
 import { toClassFilePath, type ClassName } from "../../utils/Names";
 import {IS_DESKTOP_APP} from "../../site.ts";
-import {sendCefQuery} from "../../compat/cef.ts";
+import {sendCefQuery} from "../../cef/cef.ts";
 import type {MinecraftJar} from "../../logic/MinecraftApi.ts";
 import {displayLambdas} from "../../logic/Settings.ts";
 

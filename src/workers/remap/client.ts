@@ -4,7 +4,7 @@ import { classNameFromClassFilePath, isClassFilePath, toClassFilePath } from "..
 import { writeZip } from "./zip";
 import type { RemapClassJob, RemapWorker, RemapWorkerResult, RemapWorkerStats } from "./worker";
 import {IS_DESKTOP_APP} from "../../site.ts";
-import {sendCefQueryWithProgress} from "../../compat/cef.ts";
+import {sendCefQueryWithProgress} from "../../cef/cef.ts";
 
 const batchSize = 8;
 const maxWorkers = 8;

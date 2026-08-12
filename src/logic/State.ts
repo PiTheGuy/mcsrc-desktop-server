@@ -5,7 +5,7 @@ import { getInitialState } from "./Permalink";
 import type { ClassFilePath } from "../utils/Names";
 import type { ReferenceKey } from "../workers/jar-index/types";
 import {IS_DESKTOP_APP} from "../site.ts";
-import {sendCefQuery} from "../compat/cef.ts";
+import {sendCefQuery} from "../cef/cef.ts";
 
 const initialState = getInitialState();
 

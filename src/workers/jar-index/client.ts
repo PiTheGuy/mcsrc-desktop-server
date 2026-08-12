@@ -4,7 +4,7 @@ import { minecraftJar, type MinecraftJar } from "../../logic/MinecraftApi";
 import type { ClassDataString, JarIndexer, MemberData, ReferenceKey,  ReferenceString } from "./types";
 import Dexie, { type EntityTable } from "dexie";
 import { isClassFilePath, type ClassFilePath, type ClassName } from "../../utils/Names";
-import {sendCefQuery, sendCefQueryWithProgress} from "../../compat/cef.ts";
+import {sendCefQuery, sendCefQueryWithProgress} from "../../cef/cef.ts";
 import {IS_DESKTOP_APP} from "../../site.ts";
 import {parseClassData, parseMemberData} from "./parse.ts";
 
