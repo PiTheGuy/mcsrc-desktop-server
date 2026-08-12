@@ -132,7 +132,9 @@ export async function decompileClass(className: ClassName, minecraftJar: Minecra
             action: "decompile",
             className: className,
             version: minecraftJar.version,
-            displayLambdas: displayLambdas.value
+            options: {
+                displayLambdas: displayLambdas.value
+            }
         }))
     } else {
         const worker = await findWorker();
