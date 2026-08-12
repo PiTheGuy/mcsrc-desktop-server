@@ -3,6 +3,8 @@ import { openJar } from "../../utils/Jar";
 import { classNameFromClassFilePath, isClassFilePath, toClassFilePath } from "../../utils/Names";
 import { writeZip } from "./zip";
 import type { RemapClassJob, RemapWorker, RemapWorkerResult, RemapWorkerStats } from "./worker";
+import {IS_DESKTOP_APP} from "../../site.ts";
+import {sendCefQueryWithProgress} from "../../compat/cef.ts";
 
 const batchSize = 8;
 const maxWorkers = 8;
@@ -24,6 +26,15 @@ export async function remapMinecraftJar(
     const startTime = performance.now();
     const threads = Math.max(1, Math.min(maxWorkers, (navigator.hardwareConcurrency || 4) - 1));
     const workers = Array.from({ length: threads }, () => createWorker());
+
+    if (IS_DESKTOP_APP) {
+        const url = await sendCefQueryWithProgress({
+            action: "remap",
+            version: version
+        }, onProgress);
+        const response = await fetch(url);
+        return response.blob();
+    }
 
     try {
         const jar = await openJar(version, jarBlob);

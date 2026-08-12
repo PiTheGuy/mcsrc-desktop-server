@@ -127,10 +127,6 @@ export function isUnobfuscated(version: VersionListEntry): boolean {
 
 function isSupported(version: VersionListEntry): boolean {
     if(isUnobfuscated(version)) return true;
-    if (IS_DESKTOP_APP) {
-        // The desktop app doesn't currently support remapping
-        return false;
-    }
     // This version was released after the first snapshot with official mappings,
     // but its mappings were never published.
     if (version.id === '1.14_combat-3') return false;
@@ -151,13 +147,17 @@ async function fetchVersionManifest(version: VersionListEntry): Promise<VersionM
     return getJson<VersionManifest>(version.url);
 }
 
+async function uncachedFetch(url: string, onProgress?: (percent: number) => void) {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+    }
+    return await consumeResponseWithProgress(response, onProgress);
+}
+
 async function cachedFetch(url: string, onProgress?: (percent: number) => void): Promise<Blob> {
     if (!('caches' in window)) {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
-        }
-        return await consumeResponseWithProgress(response, onProgress);
+        return await uncachedFetch(url, onProgress);
     }
 
     const cache = await caches.open(CACHE_NAME);
@@ -223,12 +223,13 @@ async function downloadMinecraftJar(version: VersionListEntry, progress: Behavio
 
     try {
         if (IS_DESKTOP_APP) {
-            const jarPath = await sendCefQueryWithProgress(
+            const result = await sendCefQueryWithProgress(
                 { action: "download", version: version.id}, newProgress => progress.next(Math.round(newProgress))
-            )
-            const response = await fetch(jarPath);
-            rawBlob = await response.blob();
-            mappingsBlob = mappings ? await cachedFetch(mappings.url) : null;
+            );
+            [rawBlob, mappingsBlob] = await Promise.all([
+                await uncachedFetch(result.jar),
+                mappings ? await uncachedFetch(mappings.url) : Promise.resolve(null)
+            ])
         } else {
             [rawBlob, mappingsBlob] = await Promise.all([
                 cachedFetch(client.url, (percent) => {
@@ -267,7 +268,7 @@ async function prepareMinecraftJarBlob(
     }
 
     const cacheKey = getRemappedJarCacheKey(version, client, mappings);
-    const cache = 'caches' in window ? await caches.open(CACHE_NAME) : null;
+    const cache = 'caches' in window && !IS_DESKTOP_APP ? await caches.open(CACHE_NAME) : null;
     const cachedResponse = await cache?.match(cacheKey);
 
     if (cachedResponse) {
