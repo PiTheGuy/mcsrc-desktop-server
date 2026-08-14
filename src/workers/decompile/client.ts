@@ -1,8 +1,9 @@
 import * as Comlink from "comlink";
-import type * as vf from "../../logic/vf";
+import type * as vf from "../../logic/vineflower/vineflower";
 import { DecompileJar, type DecompileResult } from "./types";
 import type { Jar } from "../../utils/Jar";
 import type { DecompileWorker } from "./worker";
+import { DEFAULT_VERSION, type Version } from "../../logic/vineflower/versions";
 import { toClassFilePath, type ClassName } from "../../utils/Names";
 import {IS_DESKTOP_APP} from "../../site.ts";
 import {sendCefQuery} from "../../cef/cef.ts";
@@ -18,6 +19,7 @@ type WorkerInstance = ReturnType<typeof createWorker>;
 const MAX_THREADS = navigator.hardwareConcurrency || 4;
 let workers: WorkerInstance[] = [];
 let preferWasmRuntime = true;
+let version: Version = DEFAULT_VERSION;
 
 async function ensureWorkers(count: number) {
     count = Math.min(count, MAX_THREADS);
@@ -27,7 +29,7 @@ async function ensureWorkers(count: number) {
         { length: count - workers.length },
         () => createWorker());
 
-    await Promise.all(newWorkers.map(w => w.loadVFRuntime(preferWasmRuntime)));
+    await Promise.all(newWorkers.map(w => w.loadVFRuntime(preferWasmRuntime, version)));
     workers.push(...newWorkers);
 }
 
@@ -49,6 +51,13 @@ async function findWorker(): Promise<WorkerInstance> {
 
 export async function setRuntime(preferWasm: boolean) {
     preferWasmRuntime = preferWasm;
+    await Promise.all(workers.map(w => w.scheduleClose()));
+    workers = [];
+}
+
+async function setVersion(newVersion: Version) {
+    if (version === newVersion) return;
+    version = newVersion;
     await Promise.all(workers.map(w => w.scheduleClose()));
     workers = [];
 }
@@ -77,7 +86,7 @@ export type DecompileEntireJarTask = {
     stop: () => void;
 };
 
-export function decompileEntireJar(jar: Jar, options?: DecompileEntireJarOptions): DecompileEntireJarTask {
+export function decompileEntireJar(jar: Jar, version: Version, options?: DecompileEntireJarOptions): DecompileEntireJarTask {
     const sab = new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT);
     const state = new Uint32Array(sab);
     state[0] = 0;
@@ -97,6 +106,7 @@ export function decompileEntireJar(jar: Jar, options?: DecompileEntireJarOptions
                     options.logger!(classNames[i], ++current, classNames.length);
                 }) : undefined;
 
+                await setVersion(version);
                 await ensureWorkers(optThreads);
                 const result = await Promise.all((workers
                     .slice(0, optThreads))
@@ -114,7 +124,7 @@ export function decompileEntireJar(jar: Jar, options?: DecompileEntireJarOptions
     };
 }
 
-export async function decompileClass(className: ClassName, minecraftJar: MinecraftJar): Promise<DecompileResult> {
+export async function decompileClass(className: ClassName, minecraftJar: MinecraftJar, version: Version): Promise<DecompileResult> {
     let jar = minecraftJar.jar;
     const entry = jar.entries[toClassFilePath(className)];
 
@@ -125,6 +135,7 @@ export async function decompileClass(className: ClassName, minecraftJar: Minecra
         source: `// Class not found: ${className}`,
         tokens: [],
         language: "java",
+        version,
     };
 
     if (IS_DESKTOP_APP) {
@@ -137,6 +148,7 @@ export async function decompileClass(className: ClassName, minecraftJar: Minecra
             }
         }))
     } else {
+        await setVersion(version);
         const worker = await findWorker();
         return await worker.decompile(className, jar.name, minecraftJar.blob);
     }
@@ -153,6 +165,7 @@ export async function getClassBytecode(className: ClassName, minecraftJar: Minec
         source: `// Class not found: ${className}`,
         tokens: [],
         language: "bytecode",
+        version,
     };
 
     if (IS_DESKTOP_APP) {
