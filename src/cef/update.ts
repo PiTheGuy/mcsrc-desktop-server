@@ -3,7 +3,7 @@ import {sendCefQuery} from "./cef.ts";
 import {IS_DESKTOP_APP} from "../site.ts";
 
 const LATEST_PROTOCOL_VERSION = 1;
-const LATEST_APP_VERSION = '1.0.0';
+const LATEST_APP_VERSION = '1.0.1';
 
 export type UpdateStatus = 'latest' | 'available' | 'required'
 
