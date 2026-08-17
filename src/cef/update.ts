@@ -4,7 +4,7 @@ import {IS_DESKTOP_APP} from "../site.ts";
 import {latestSkippedVersion} from "../logic/Settings.ts";
 
 export const LATEST_PROTOCOL_VERSION = 1;
-export const LATEST_APP_VERSION = '1.0.1';
+export const LATEST_APP_VERSION = '1.0.2';
 
 export type AppVersion = {
     app: string;
