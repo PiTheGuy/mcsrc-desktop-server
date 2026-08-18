@@ -1,5 +1,5 @@
 import {useObservable} from "../utils/UseObservable.ts";
-import {LATEST_APP_VERSION, suppressUpdateNotification, updateStatus} from "../cef/update.ts";
+import {LATEST_APP_VERSION, suppressUpdateNotification, updateStatus} from "../logic/Update.ts";
 import {Button, Flex, Modal} from "antd";
 import {sendCefQuery} from "../cef/cef.ts";
 import {DownloadOutlined} from "@ant-design/icons";
