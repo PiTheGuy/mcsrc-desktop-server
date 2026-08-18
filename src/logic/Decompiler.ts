@@ -45,19 +45,19 @@ export function decompileResultPipeline(jar: Observable<MinecraftJar>): Observab
 
             const className = classNameFromClassFilePath(file);
             if (bytecode) {
-                return from(getClassBytecode(className, jar));
+                return from(getClassBytecode(className, jar.jar));
             }
 
             const options = getDecompilerOptions(displayLambdas);
             return from(worker.setOptions(options)).pipe(
-                switchMap(() => from(decompileClass(className, jar)))
+                switchMap(() => from(decompileClass(className, jar.jar)))
             );
         }),
         shareReplay({ bufferSize: 1, refCount: false })
     );
 }
 
-export async function getClassBytecode(className: ClassName, jar: MinecraftJar) {
+export async function getClassBytecode(className: ClassName, jar: Jar) {
     try {
         decompilerCounter.next(decompilerCounter.value + 1);
         return await worker.getClassBytecode(className, jar);
@@ -66,7 +66,7 @@ export async function getClassBytecode(className: ClassName, jar: MinecraftJar) 
     }
 }
 
-export async function decompileClass(className: ClassName, jar: MinecraftJar) {
+export async function decompileClass(className: ClassName, jar: Jar) {
     try {
         decompilerCounter.next(decompilerCounter.value + 1);
         return await worker.decompileClass(className, jar, vineflowerVersion.value);

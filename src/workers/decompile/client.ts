@@ -124,8 +124,7 @@ export function decompileEntireJar(jar: Jar, version: Version, options?: Decompi
     };
 }
 
-export async function decompileClass(className: ClassName, minecraftJar: MinecraftJar, version: Version): Promise<DecompileResult> {
-    let jar = minecraftJar.jar;
+export async function decompileClass(className: ClassName, jar: Jar, version: Version): Promise<DecompileResult> {
     const entry = jar.entries[toClassFilePath(className)];
 
     if (!entry) return {
@@ -142,7 +141,7 @@ export async function decompileClass(className: ClassName, minecraftJar: Minecra
         return await JSON.parse(await sendCefQuery({
             action: "decompile",
             className: className,
-            version: minecraftJar.version,
+            version: jar.name,
             options: {
                 displayLambdas: displayLambdas.value
             }
@@ -150,12 +149,11 @@ export async function decompileClass(className: ClassName, minecraftJar: Minecra
     } else {
         await setVersion(version);
         const worker = await findWorker();
-        return await worker.decompile(className, jar.name, minecraftJar.blob);
+        return await worker.decompile(className, jar.name, jar.blob);
     }
 }
 
-export async function getClassBytecode(className: ClassName, minecraftJar: MinecraftJar): Promise<DecompileResult> {
-    let jar = minecraftJar.jar;
+export async function getClassBytecode(className: ClassName, jar: Jar): Promise<DecompileResult> {
     const entry = jar.entries[toClassFilePath(className)];
 
     if (!entry) return {
@@ -172,7 +170,7 @@ export async function getClassBytecode(className: ClassName, minecraftJar: Minec
         return await JSON.parse(await sendCefQuery({
             action: "bytecode",
             className: className,
-            version: minecraftJar.version
+            version: jar.name,
         }))
     }
 
