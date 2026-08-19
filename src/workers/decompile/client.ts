@@ -7,7 +7,6 @@ import { DEFAULT_VERSION, type Version } from "../../logic/vineflower/versions";
 import { toClassFilePath, type ClassName } from "../../utils/Names";
 import {IS_DESKTOP_APP} from "../../site.ts";
 import {sendCefQuery} from "../../cef/cef.ts";
-import type {MinecraftJar} from "../../logic/MinecraftApi.ts";
 import {displayLambdas} from "../../logic/Settings.ts";
 
 function createWorker() {
@@ -146,11 +145,10 @@ export async function decompileClass(className: ClassName, jar: Jar, version: Ve
                 displayLambdas: displayLambdas.value
             }
         }))
-    } else {
-        await setVersion(version);
-        const worker = await findWorker();
-        return await worker.decompile(className, jar.name, jar.blob);
     }
+    await setVersion(version);
+    const worker = await findWorker();
+    return await worker.decompile(className, jar.name, jar.blob);
 }
 
 export async function getClassBytecode(className: ClassName, jar: Jar): Promise<DecompileResult> {
