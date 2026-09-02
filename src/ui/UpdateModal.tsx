@@ -10,14 +10,12 @@ import {latestSkippedVersion} from "../logic/Settings.ts";
 export const updateModalOpen = new BehaviorSubject<boolean>(true);
 const showModal = combineLatest([updateStatus, suppressUpdateNotification, updateModalOpen]).pipe(
     map(([status, suppress, open]) => {
-        console.log(status, suppress, open);
         return (status == 'required' || (status !== 'latest' && !suppress)) && open;
     })
 );
 
 export const UpdateModal = () => {
     const show = useObservable(showModal);
-    console.log(latestSkippedVersion.value);
     const status = useObservable(updateStatus);
 
 
