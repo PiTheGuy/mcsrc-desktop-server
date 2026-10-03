@@ -8,6 +8,7 @@ import { JarDecompilerModal, JarDecompilerProgressModal } from "./JarDecompilerM
 import IndexProgressNotification from "./IndexProgressNotification";
 import {IS_DESKTOP_APP} from "../site.ts";
 import UpdateModal from "./UpdateModal.tsx";
+import LauncherMetaModal from "./meta/LauncherMetaModal";
 
 const Modals = () => {
     return (
@@ -18,6 +19,7 @@ const Modals = () => {
             <AboutModal />
             {IS_DESKTOP_APP && <UpdateModal />}
             <SettingsModal />
+            <LauncherMetaModal />
             <StructureModal />
             <JarDecompilerModal />
             <JarDecompilerProgressModal />
