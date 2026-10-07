@@ -1,5 +1,5 @@
 import type {ClassDataString, Field, MemberData, Method} from "./types.ts";
-import {toClassName} from "../../utils/Names.ts";
+import {type ClassName, toClassName} from "../../utils/Names.ts";
 import type {ClassData} from "./client.ts";
 
 export function parseClassData(data: ClassDataString): ClassData {
@@ -13,10 +13,15 @@ export function parseClassData(data: ClassDataString): ClassData {
 }
 
 export function parseMemberData(data: string): MemberData {
-    const [className, methodsStr, fieldsStr] = data.split("|");
+    let parts = data.split("|");
     return {
-        className: toClassName(className),
-        methods: methodsStr.split(',') as Method[],
-        fields: fieldsStr.split(',') as Field[]
+        className: parts[0] as ClassName,
+        methods: parts[1] ? parts[1].split(",") as Method[] : [],
+        fields: parts[2] ? parts[2].split(",") as Field[] : [],
+        methodAccess: Object.fromEntries((parts[3] || "").split(",").filter(Boolean).map(value => {
+            const separator = value.lastIndexOf(":");
+            return [value.slice(0, separator), Number(value.slice(separator + 1))];
+        })),
+        methodBridges: Object.fromEntries((parts[4] || "").split(",").filter(Boolean).map(value => value.split("=")))
     }
 }

@@ -1,7 +1,7 @@
-import { load } from "../../../java/build/generated/teavm/wasm-gc/mcsrc.wasm-runtime.js";
+import {load} from "../../../java/build/generated/teavm/wasm-gc/mcsrc.wasm-runtime.js";
 import indexerWasm from '../../../java/build/generated/teavm/wasm-gc/mcsrc.wasm?url';
-import { openJar, type Jar } from "../../utils/Jar.js";
-import {type ClassFilePath, type ClassName, toClassName} from "../../utils/Names.js";
+import {type Jar, openJar} from "../../utils/Jar.js";
+import {type ClassFilePath, type ClassName} from "../../utils/Names.js";
 import {parseMemberData} from "./parse.ts";
 
 export type Class = ClassName;
@@ -22,6 +22,8 @@ export type MemberData = {
     className: ClassName;
     methods: Method[];
     fields: Field[];
+    methodAccess: Record<string, number>;
+    methodBridges: Record<string, string>;
 };
 
 export class JarIndexer {
