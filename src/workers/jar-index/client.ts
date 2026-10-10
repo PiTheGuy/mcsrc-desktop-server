@@ -129,7 +129,7 @@ export class JarIndex {
 
             let promises: Promise<number>[] = [];
 
-            let taskQueue: ClassFilePath[] = [...classNames];
+            let nextClass = 0;
             let completed = 0;
 
             for (let i = 0; i < this.workers.length; i++) {
@@ -137,7 +137,8 @@ export class JarIndex {
 
                 promises.push((async () => {
                     while (true) {
-                        const batch = taskQueue.splice(0, batchSize);
+                        const batch = classNames.slice(nextClass, nextClass + batchSize);
+                        nextClass += batch.length;
 
                         if (batch.length === 0) {
                             const indexed = await worker.c.getReferenceSize();
@@ -200,16 +201,21 @@ export class JarIndex {
 
     private async loadMemberData(): Promise<MemberData[]> {
         await this.indexJar();
+        // Cache both exports on the page before releasing the worker declarations.
+        await this.getClassData();
+        let members: MemberData[];
 
         if (IS_DESKTOP_APP) {
-            return JSON.parse(await sendCefQuery({
+            members = JSON.parse(await sendCefQuery({
                 type: "index",
                 action: "getMemberData",
                 version: this.minecraftJar.version,
             })).map(parseMemberData);
+        } else {
+            members = (await Promise.all(this.workers.map(worker => worker.c.getMemberData()))).flat();
+            await Promise.all(this.workers.map(worker => worker.c.clearDeclarations()));
         }
-
-        return (await Promise.all(this.workers.map(worker => worker.c.getMemberData()))).flat();
+        return members;
     }
 
     getClassData(): Promise<ClassData[]> {

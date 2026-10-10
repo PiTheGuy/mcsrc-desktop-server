@@ -1,8 +1,11 @@
 import {load} from "../../../java/build/generated/teavm/wasm-gc/mcsrc.wasm-runtime.js";
 import indexerWasm from '../../../java/build/generated/teavm/wasm-gc/mcsrc.wasm?url';
-import {type Jar, openJar} from "../../utils/Jar.js";
-import {type ClassFilePath, type ClassName} from "../../utils/Names.js";
+import { openJar, type Jar } from "../../utils/Jar.js";
+import type { ClassFilePath, ClassName } from "../../utils/Names.js";
+import { toArrayBuffer } from "../../utils/ArrayBuffer";
 import {parseMemberData} from "./parse.ts";
+
+const readAhead = 4;
 
 export type Class = ClassName;
 export type Method = `${ClassName}:${string}:${string}`;
@@ -58,19 +61,19 @@ export class JarIndexer {
         }
 
         const currentJar = this.#jar; // Capture for closure
-        const arrayBufferPromises = classNames.map(async className => {
-            const entry = currentJar.entries[className];
-            if (!entry) {
-                throw new Error(`Class entry not found: ${className}`);
-            }
-            const data = await entry.blob();
-            return data.arrayBuffer();
-        });
-
         const indexer = await this.getIndexer();
-
-        for (const arrayBuffer of arrayBufferPromises) {
-            indexer.index(await arrayBuffer);
+        for (let start = 0; start < classNames.length; start += readAhead) {
+            const batch = classNames.slice(start, start + readAhead);
+            const classBytes = await Promise.all(batch.map(async className => {
+                const entry = currentJar.entries[className];
+                if (!entry) {
+                    throw new Error(`Class entry not found: ${className}`);
+                }
+                return entry.bytes();
+            }));
+            for (const bytes of classBytes) {
+                indexer.index(toArrayBuffer(bytes));
+            }
         }
     };
 
@@ -94,6 +97,11 @@ export class JarIndexer {
         return indexer.getClassData();
     };
 
+    clearDeclarations = async (): Promise<void> => {
+        const indexer = await this.getIndexer();
+        indexer.clearDeclarations();
+    };
+
     getMemberData = async (): Promise<MemberData[]> => {
         const indexer = await this.getIndexer();
         return indexer.getMemberData().map(parseMemberData);
@@ -107,4 +115,5 @@ interface Indexer {
     getBytecode(classData: ArrayBufferLike[]): string;
     getClassData(): ClassDataString[];
     getMemberData(): string[];
+    clearDeclarations(): void;
 }
