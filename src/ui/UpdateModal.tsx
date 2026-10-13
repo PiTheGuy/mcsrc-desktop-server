@@ -80,7 +80,7 @@ const SkipVersion = () => {
 const Update = () => {
     async function update() {
         await sendCefQuery({
-            action: 'update'
+            type: 'update'
         })
     }
 

@@ -34,7 +34,7 @@ export const suppressUpdateNotification = latestSkippedVersion.observable.pipe(
 
 async function getAppVersion() : Promise<AppVersion> {
     return JSON.parse(await sendCefQuery({
-        action: 'version'
+        type: 'version'
     }));
 }
 

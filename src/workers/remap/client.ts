@@ -29,7 +29,7 @@ export async function remapMinecraftJar(
 
     if (IS_DESKTOP_APP) {
         const url = await sendCefQueryWithProgress({
-            action: "remap",
+            type: "remap",
             version: version
         }, onProgress);
         const response = await fetch(url);

@@ -96,8 +96,8 @@ export class JarIndex {
             console.log(`Indexing minecraft jar using host JVM`);
 
             await sendCefQueryWithProgress({
-                action: "index",
-                type: "start",
+                type: "index",
+                action: "start",
                 version: this.minecraftJar.version,
             }, progress => indexProgress.next(progress)).then(() => {
                 const endTime = performance.now();
@@ -171,8 +171,8 @@ export class JarIndex {
 
         if (IS_DESKTOP_APP) {
             return JSON.parse(await sendCefQuery({
-                action: "index",
-                type: "getReference",
+                type: "index",
+                action: "getReference",
                 key: key
             }))
         }
@@ -191,8 +191,8 @@ export class JarIndex {
 
         if (IS_DESKTOP_APP) {
             return JSON.parse(await sendCefQuery({
-                action: "index",
-                type: "getMemberData",
+                type: "index",
+                action: "getMemberData",
                 version: this.minecraftJar.version,
             })).map(parseMemberData);
         }
@@ -222,8 +222,8 @@ export class JarIndex {
             let classDataStrings : ClassDataString[];
             if (IS_DESKTOP_APP) {
                 classDataStrings = JSON.parse(await sendCefQuery({
-                    action: "index",
-                    type: "getClassData",
+                    type: "index",
+                    action: "getClassData",
                     version: this.minecraftJar.version,
                 }))
             } else {

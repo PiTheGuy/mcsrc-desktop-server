@@ -138,7 +138,7 @@ export async function decompileClass(className: ClassName, jar: Jar, version: Ve
 
     if (IS_DESKTOP_APP) {
         return await JSON.parse(await sendCefQuery({
-            action: "decompile",
+            type: "decompile",
             className: className,
             version: jar.name,
             options: {
@@ -166,7 +166,7 @@ export async function getClassBytecode(className: ClassName, jar: Jar): Promise<
 
     if (IS_DESKTOP_APP) {
         return await JSON.parse(await sendCefQuery({
-            action: "bytecode",
+            type: "bytecode",
             className: className,
             version: jar.name,
         }))

@@ -224,7 +224,7 @@ async function downloadMinecraftJar(version: VersionListEntry, progress: Behavio
     try {
         if (IS_DESKTOP_APP) {
             const result = await sendCefQueryWithProgress(
-                { action: "download", version: version.id}, newProgress => progress.next(Math.round(newProgress))
+                { type: "download", version: version.id}, newProgress => progress.next(Math.round(newProgress))
             );
             [rawBlob, mappingsBlob] = await Promise.all([
                 await uncachedFetch(result.jar),
