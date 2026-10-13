@@ -3,8 +3,8 @@ import {sendCefQuery} from "../cef/cef.ts";
 import {IS_DESKTOP_APP} from "../site.ts";
 import {latestSkippedVersion} from "./Settings.ts";
 
-export const LATEST_PROTOCOL_VERSION = 1;
-export const LATEST_APP_VERSION = '1.0.2';
+export const LATEST_PROTOCOL_VERSION = 2;
+export const LATEST_APP_VERSION = '1.1.0';
 
 export type AppVersion = {
     app: string;
