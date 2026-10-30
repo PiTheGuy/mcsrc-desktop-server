@@ -7,6 +7,7 @@ import { activeJavadocFile } from "../javadoc/Javadoc";
 import { useObservable } from "../utils/UseObservable";
 import { showAnnotaterShortcut } from "../logic/Settings";
 import JavadocFilePicker from "../javadoc/JavadocFilePicker";
+import {clientIsAtLeastVersion} from "../logic/Update.ts";
 
 const Header = () => {
     return (
@@ -24,6 +25,8 @@ const Header = () => {
 const HeaderBody = () => {
     const javadocMode = useObservable(activeJavadocFile) !== null;
     const showAnnotaterShortcutValue = useObservable(showAnnotaterShortcut.observable);
+    const supportsAnnotater = useObservable(clientIsAtLeastVersion('1.2.0'));
+
 
     return (
         <Flex justify="center" align="center" gap={6} style={{ width: "max-content", minWidth: "100%" }}>
@@ -44,7 +47,7 @@ const HeaderBody = () => {
                     </Button>
                 </Tooltip>
             )}
-            {(showAnnotaterShortcutValue || javadocMode) && <JavadocFilePicker annotaterShortcut />}
+            {(showAnnotaterShortcutValue || javadocMode) && supportsAnnotater && <JavadocFilePicker annotaterShortcut />}
             <div style={{ flex: "0 0 auto" }}>
                 <SettingsModalButton />
             </div>

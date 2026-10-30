@@ -1,4 +1,4 @@
-import {BehaviorSubject, map, type Observable} from "rxjs";
+import {BehaviorSubject, firstValueFrom, map, type Observable} from "rxjs";
 import {sendCefQuery} from "../cef/cef.ts";
 import {IS_DESKTOP_APP} from "../site.ts";
 import {latestSkippedVersion} from "./Settings.ts";
@@ -36,6 +36,18 @@ async function getAppVersion() : Promise<AppVersion> {
     return JSON.parse(await sendCefQuery({
         type: 'version'
     }));
+}
+
+export function clientIsAtLeastVersion(version: string) {
+    return appVersion.pipe(
+        map(appVersion => {
+            const [reqMajor, reqMinor, reqPatch] = version.split('.').map(Number);
+            const [curMajor, curMinor, curPatch] = appVersion.app.split('.').map(Number);
+            if (curMajor !== reqMajor) return curMajor > reqMajor;
+            if (curMinor !== reqMinor) return curMinor > reqMinor;
+            return curPatch >= reqPatch;
+        })
+    );
 }
 
 if (IS_DESKTOP_APP) {

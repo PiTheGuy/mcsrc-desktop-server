@@ -6,9 +6,11 @@ import { openLauncherMeta } from "../../logic/LauncherMeta";
 import { useObservable } from "../../utils/UseObservable";
 import { modalOpen } from "../JarDecompilerModal";
 import {IS_DESKTOP_APP} from "../../site.ts";
+import {clientIsAtLeastVersion} from "../../logic/Update.ts";
 
 const ToolsSettings = ({ onClose }: { onClose: () => void }) => {
     const javadocFile = useObservable(activeJavadocFile);
+    const supportsJavadoc = useObservable(clientIsAtLeastVersion('1.2.0'));
 
     return (
         <Flex vertical gap="large">
@@ -27,23 +29,24 @@ const ToolsSettings = ({ onClose }: { onClose: () => void }) => {
                     Open metadata explorer
                 </Button>
             </Flex>
-            <Divider style={{ marginBlock: 0 }} />
-            <Flex vertical gap="middle">
+            {supportsJavadoc && <Divider style={{marginBlock: 0}}/>}
+            {supportsJavadoc && <Flex vertical gap="middle">
                 <Space>
                     <Typography.Text strong>JavaDoc</Typography.Text>
                     {javadocFile && <Tag>Active</Tag>}
                 </Space>
                 <Typography.Text type="secondary">
-                    Open or create Tiny v2 or Enigma mappings, or load an Annotater project to view and edit documentation.
+                    Open or create Tiny v2 or Enigma mappings, or load an Annotater project to view and edit
+                    documentation.
                 </Typography.Text>
                 <Flex wrap gap="small">
-                    <JavadocFilePicker onOpen={onClose} />
-                    {javadocFile && <Button icon={<CloseOutlined />} onClick={deactivateJavadocFile}>
+                    <JavadocFilePicker onOpen={onClose}/>
+                    {javadocFile && <Button icon={<CloseOutlined/>} onClick={deactivateJavadocFile}>
                         Exit Javadoc mode
                     </Button>}
                 </Flex>
-            </Flex>
-            <Divider style={{ marginBlock: 0 }} />
+            </Flex>}
+            {!IS_DESKTOP_APP && <Divider style={{marginBlock: 0}}/>}
             {!IS_DESKTOP_APP && <Flex vertical align="flex-start" gap="middle">
                 <Space>
                     <Typography.Text strong>Decompile entire JAR</Typography.Text>
