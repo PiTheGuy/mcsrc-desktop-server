@@ -5,6 +5,7 @@ import JavadocFilePicker from "../../javadoc/JavadocFilePicker";
 import { openLauncherMeta } from "../../logic/LauncherMeta";
 import { useObservable } from "../../utils/UseObservable";
 import { modalOpen } from "../JarDecompilerModal";
+import {IS_DESKTOP_APP} from "../../site.ts";
 
 const ToolsSettings = ({ onClose }: { onClose: () => void }) => {
     const javadocFile = useObservable(activeJavadocFile);
@@ -43,7 +44,7 @@ const ToolsSettings = ({ onClose }: { onClose: () => void }) => {
                 </Flex>
             </Flex>
             <Divider style={{ marginBlock: 0 }} />
-            <Flex vertical align="flex-start" gap="middle">
+            {!IS_DESKTOP_APP && <Flex vertical align="flex-start" gap="middle">
                 <Space>
                     <Typography.Text strong>Decompile entire JAR</Typography.Text>
                     <Tag color="orange">Experimental</Tag>
@@ -53,12 +54,12 @@ const ToolsSettings = ({ onClose }: { onClose: () => void }) => {
                 </Typography.Text>
                 <Button
                     data-testid="jar-decompiler"
-                    icon={<JavaOutlined />}
+                    icon={<JavaOutlined/>}
                     onClick={() => modalOpen.next(true)}
                 >
                     Configure decompilation…
                 </Button>
-            </Flex>
+            </Flex>}
         </Flex>
     );
 };
