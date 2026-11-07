@@ -4,6 +4,7 @@ import mappingsWasm from "../../java/build/generated/teavm/wasm-gc/mcsrc.wasm?ur
 import type { DeclarationMetadata } from "./editor/JavadocDeclaration";
 import { outerClassName, type ClassName } from "../utils/Names";
 import {sendCefQuery} from "../cef/cef.ts";
+import {alternateFilePicker} from "../logic/Settings.ts";
 
 export type JavadocFormat = "tiny2" | "enigma";
 export const JavadocElementKind = {
@@ -104,7 +105,8 @@ export async function openAnnotaterProjectOnDesktop() : Promise<{
 }> {
     let result = JSON.parse(await sendCefQuery({
         type: "javadoc",
-        action: "open_project"
+        action: "open_project",
+        alternateFilePicker: alternateFilePicker.value
     }));
 
 

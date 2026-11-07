@@ -1,4 +1,7 @@
-import { AppstoreOutlined, CodeOutlined, KeyOutlined, SettingOutlined, ThunderboltOutlined, ToolOutlined } from "@ant-design/icons";
+import {
+    AppstoreOutlined, CodeOutlined,
+    DesktopOutlined, KeyOutlined, SettingOutlined, ThunderboltOutlined, ToolOutlined
+} from "@ant-design/icons";
 import { Button, Flex, Menu, Modal, Tooltip, Typography, theme as antTheme } from "antd";
 import { useEffect, useState } from "react";
 import { BehaviorSubject } from "rxjs";
@@ -9,6 +12,8 @@ import CodeSettings from "./CodeSettings";
 import KeybindsSettings from "./KeybindsSettings";
 import PerformanceSettings from "./PerformanceSettings";
 import ToolsSettings from "./ToolsSettings";
+import {AppSettings} from "./AppSettings.tsx";
+import {IS_DESKTOP_APP} from "../../site.ts";
 
 export const settingsModalOpen = new BehaviorSubject<boolean>(false);
 
@@ -41,6 +46,9 @@ const SettingsModal = () => {
             content: <KeybindsSettings />,
         },
         { key: 'tools', label: 'Tools', icon: <ToolOutlined aria-hidden="true" />, content: <ToolsSettings onClose={() => settingsModalOpen.next(false)} /> },
+        ...(IS_DESKTOP_APP
+            ? [{ key: 'app', label: 'App', icon: <DesktopOutlined aria-hidden="true" />, content: <AppSettings /> }]
+            : []),
     ];
 
     useEffect(() => {

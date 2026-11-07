@@ -182,6 +182,7 @@ preferWasmDecompiler.observable
     .subscribe((v) => decompiler.setRuntime(v));
 
 export const latestSkippedVersion = new StringSetting<string>('latest_skipped_version', '');
+export const alternateFilePicker = new BooleanSetting('alternate_file_picker', false);
 
 export const MAX_THREADS = navigator.hardwareConcurrency || 4;
 export const decompilerThreads = new NumberSetting("decompiler_threads", Math.max(MAX_THREADS / 2, 1));
