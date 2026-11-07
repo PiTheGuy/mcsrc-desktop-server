@@ -87,6 +87,7 @@ const JavadocFilePicker = ({ annotaterShortcut = false, onOpen }: {
                 let project;
                 if (IS_DESKTOP_APP) {
                     project = await openAnnotaterProjectOnDesktop();
+                    if (!project) return;
                 } else {
                     const handle = await window.showDirectoryPicker({ id: "annotater", mode: "readwrite" });
                     project = await readAnnotaterDirectory(handle);

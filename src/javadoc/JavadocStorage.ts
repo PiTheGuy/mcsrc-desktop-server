@@ -102,13 +102,14 @@ export async function readAnnotaterDirectory(handle: FileSystemDirectoryHandle):
 export async function openAnnotaterProjectOnDesktop() : Promise<{
     source: JavadocDesktopDirectorySource,
     version: string;
-}> {
+} | null> {
     let result = JSON.parse(await sendCefQuery({
         type: "javadoc",
         action: "open_project",
         alternateFilePicker: alternateFilePicker.value
     }));
 
+    if (!result) return null;
 
     const mappingsBridge = await getBridge();
     const files = new Map<string, string[]>();
