@@ -15,8 +15,9 @@ import {
     readJavadocDirectory,
     readJavadocFile,
     type JavadocFormat,
-    type JavadocSource,
+    type JavadocSource, openAnnotaterProjectOnDesktop,
 } from "./JavadocStorage";
+import {IS_DESKTOP_APP} from "../site.ts";
 
 const filePickerSupported = "showOpenFilePicker" in window && "showSaveFilePicker" in window;
 const directoryPickerSupported = "showDirectoryPicker" in window;
@@ -83,8 +84,13 @@ const JavadocFilePicker = ({ annotaterShortcut = false, onOpen }: {
                 });
                 source = await readJavadocFile(handle);
             } else if (key === "annotater") {
-                const handle = await window.showDirectoryPicker({ id: "annotater", mode: "readwrite" });
-                const project = await readAnnotaterDirectory(handle);
+                let project;
+                if (IS_DESKTOP_APP) {
+                    project = await openAnnotaterProjectOnDesktop();
+                } else {
+                    const handle = await window.showDirectoryPicker({ id: "annotater", mode: "readwrite" });
+                    project = await readAnnotaterDirectory(handle);
+                }
                 source = project.source;
                 diffView.next(false);
                 selectedMinecraftVersion.next(project.version);
@@ -171,7 +177,7 @@ const JavadocFilePicker = ({ annotaterShortcut = false, onOpen }: {
                     if (!pickerSupported) handleUnsupported();
                 }}
             >
-                {selectedFile?.handle.name ?? "Javadoc mappings"}
+                {selectedFile?.kind == "desktop-directory" ? "Javadoc mappings" : selectedFile?.handle.name ?? "Javadoc mappings"}
                 <DownOutlined />
             </Button>
         </Dropdown>

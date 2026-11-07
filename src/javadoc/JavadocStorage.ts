@@ -1,8 +1,9 @@
-import { defer, firstValueFrom, shareReplay, tap } from "rxjs";
+import {defer, firstValueFrom, map, shareReplay, tap} from "rxjs";
 import { load } from "../../java/build/generated/teavm/wasm-gc/mcsrc.wasm-runtime.js";
 import mappingsWasm from "../../java/build/generated/teavm/wasm-gc/mcsrc.wasm?url";
 import type { DeclarationMetadata } from "./editor/JavadocDeclaration";
 import { outerClassName, type ClassName } from "../utils/Names";
+import {sendCefQuery} from "../cef/cef.ts";
 
 export type JavadocFormat = "tiny2" | "enigma";
 export const JavadocElementKind = {
@@ -31,7 +32,13 @@ export interface JavadocDirectorySource {
     files: Map<string, string[]>;
 }
 
-export type JavadocSource = JavadocFileSource | JavadocDirectorySource;
+export interface JavadocDesktopDirectorySource {
+    kind: "desktop-directory";
+    path: string;
+    files: Map<string, string[]>;
+}
+
+export type JavadocSource = JavadocFileSource | JavadocDirectorySource | JavadocDesktopDirectorySource;
 
 export interface AnnotaterConfig {
     /** Path to the Enigma mappings subdirectory, relative to the project root. */
@@ -89,6 +96,37 @@ export async function readAnnotaterDirectory(handle: FileSystemDirectoryHandle):
 
     const source = await readJavadocDirectory(directory);
     return { source, version: config.version };
+}
+
+export async function openAnnotaterProjectOnDesktop() : Promise<{
+    source: JavadocDesktopDirectorySource,
+    version: string;
+}> {
+    let result = JSON.parse(await sendCefQuery({
+        type: "javadoc",
+        action: "open_project"
+    }));
+
+
+    const mappingsBridge = await getBridge();
+    const files = new Map<string, string[]>();
+    mappingsBridge.beginJavadocDirectory();
+
+    try {
+        for (const mappingFile of result.files) {
+            const data = mappingFile.content;
+            const owner = mappingsBridge.readJavadocDirectoryFile(data, mappingFile.path);
+            files.set(owner, mappingFile.path.split("/"));
+        }
+
+        mappingsBridge.finishJavadocDirectory();
+    } catch (error) {
+        mappingsBridge.abortJavadocDirectory();
+        throw error;
+    }
+
+    const source : JavadocDesktopDirectorySource = { kind: "desktop-directory", path: result.path, files: files };
+    return { source: source, version: result.version };
 }
 
 function parseAnnotaterConfig(json: string): AnnotaterConfig {
@@ -168,6 +206,19 @@ export async function writeJavadocSource(source: JavadocSource, owner: ClassName
     const bytes = requireBridge().writeJavadocClass(outerOwner);
     const existingPath = source.files.get(outerOwner);
 
+    if (source.kind === "desktop-directory") {
+        const path = existingPath?.join("/") ?? `${outerOwner}.mapping`;
+        const fullPath = source.path + "/" + path;
+        await sendCefQuery({
+            type: "javadoc",
+            action: "write",
+            path: fullPath,
+            base64: bytesToBase64(bytes),
+        });
+        source.files.set(outerOwner, path.split("/"));
+        return;
+    }
+
     if (bytes.byteLength === 0) {
         if (existingPath) {
             await deleteFile(source.handle, existingPath);
@@ -200,6 +251,15 @@ export async function writeJavadocSource(source: JavadocSource, owner: ClassName
     }
 
     source.files.set(outerOwner, path);
+}
+
+function bytesToBase64(bytes: Int8Array<ArrayBufferLike>): string {
+    const u8 = new Uint8Array(bytes);
+    let binary = "";
+    for (let i = 0; i < u8.length; i += 0x8000) {
+        binary += String.fromCharCode(...u8.subarray(i, i + 0x8000));
+    }
+    return btoa(binary);
 }
 
 export function getStoredJavadoc(target: JavadocTarget): string | null {
