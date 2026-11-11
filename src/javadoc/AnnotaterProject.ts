@@ -1,7 +1,12 @@
 import { collectFiles, getDirectory } from "./DirectoryFiles";
-import { readJavadocDirectory, type JavadocDirectorySource } from "./JavadocStorage";
+import {
+    readJavadocDirectory, type JavadocDirectorySource, type JavadocDesktopDirectorySource,
+    readDesktopJavadocDirectory
+} from "./JavadocStorage";
 import type { RuntimeLibrariesConfig } from "./RuntimeLibraries";
 import type { UnpickConfig } from "../workers/decompile/Unpick";
+import {sendCefQuery} from "../cef/cef.ts";
+import {alternateFilePicker} from "../logic/Settings.ts";
 
 export interface AnnotaterConfig {
     /** Path to the Enigma mappings subdirectory, relative to the project root. */
@@ -48,6 +53,21 @@ export async function readAnnotaterDirectory(handle: FileSystemDirectoryHandle):
     if (runtimeLibraries) source.runtimeLibraries = runtimeLibraries;
     if (unpick) source.unpick = unpick;
     return { source, version: config.version };
+}
+
+export async function openAnnotaterProjectOnDesktop() : Promise<{
+    source: JavadocDesktopDirectorySource,
+    version: string;
+} | null> {
+    let result = JSON.parse(await sendCefQuery({
+        type: "javadoc",
+        action: "open_project",
+        alternateFilePicker: alternateFilePicker.value
+    }));
+
+    if (!result) return null;
+    const source = await readDesktopJavadocDirectory(result);
+    return { source: source, version: result.version };
 }
 
 function parseAnnotaterConfig(json: string): AnnotaterConfig {

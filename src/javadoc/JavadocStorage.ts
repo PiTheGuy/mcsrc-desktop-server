@@ -7,7 +7,6 @@ import type { UnpickConfig } from "../workers/decompile/Unpick";
 import type { DeclarationMetadata } from "./editor/JavadocDeclaration";
 import { outerClassName, type ClassName } from "../utils/Names";
 import {sendCefQuery} from "../cef/cef.ts";
-import {alternateFilePicker} from "../logic/Settings.ts";
 
 export type JavadocFormat = "tiny2" | "enigma";
 export const JavadocElementKind = {
@@ -41,6 +40,7 @@ export interface JavadocDirectorySource {
 export interface JavadocDesktopDirectorySource {
     kind: "desktop-directory";
     path: string;
+    unpick?: UnpickConfig;
     files: Map<string, string[]>;
 }
 
@@ -118,6 +118,28 @@ export async function readJavadocDirectory(handle: FileSystemDirectoryHandle): P
     }
 
     return { kind: "directory", handle, files };
+}
+
+export async function readDesktopJavadocDirectory(result: any) {
+    const mappingsBridge = await getBridge();
+    const files = new Map<string, string[]>();
+    mappingsBridge.beginJavadocDirectory();
+
+    try {
+        for (const mappingFile of result.files) {
+            const data = mappingFile.content;
+            const owner = mappingsBridge.readJavadocDirectoryFile(data, mappingFile.path);
+            files.set(owner, mappingFile.path.split("/"));
+        }
+
+        mappingsBridge.finishJavadocDirectory();
+    } catch (error) {
+        mappingsBridge.abortJavadocDirectory();
+        throw error;
+    }
+
+    const source: JavadocDesktopDirectorySource = {kind: "desktop-directory", path: result.path, unpick: result.unpick, files: files};
+    return source;
 }
 
 export async function createJavadocFile(

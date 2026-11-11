@@ -53,9 +53,10 @@ export function decompileResultPipeline(jar: Observable<MinecraftJar>): Observab
             }
 
             const options = getDecompilerOptions(displayLambdas);
-            const project = javadoc?.kind === "directory" ? javadoc : undefined;
+            const project = javadoc?.kind === "directory" || javadoc?.kind === "desktop-directory" ? javadoc : undefined;
+            const isWeb = project?.kind === "directory";
             return from(worker.setOptions(options)).pipe(
-                switchMap(() => from(decompileClass(className, jar.jar, project?.unpick, project?.runtimeLibraries)))
+                switchMap(() => from(decompileClass(className, jar.jar, project?.unpick, isWeb ? project?.runtimeLibraries : undefined)))
             );
         }),
         shareReplay({ bufferSize: 1, refCount: false })

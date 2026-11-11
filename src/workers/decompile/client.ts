@@ -143,6 +143,7 @@ export async function decompileClass(className: ClassName, jar: Jar, version: Ve
             type: "decompile",
             className: className,
             version: jar.name,
+            unpick: unpick,
             options: {
                 displayLambdas: displayLambdas.value
             }
