@@ -40,8 +40,9 @@ export interface JavadocDirectorySource {
 export interface JavadocDesktopDirectorySource {
     kind: "desktop-directory";
     path: string;
-    unpick?: UnpickConfig;
     files: Map<string, string[]>;
+    unpick?: UnpickConfig;
+    runtimeLibraries?: RuntimeLibrariesConfig;
 }
 
 export type JavadocSource = JavadocFileSource | JavadocDirectorySource | JavadocDesktopDirectorySource;
@@ -138,7 +139,7 @@ export async function readDesktopJavadocDirectory(result: any) {
         throw error;
     }
 
-    const source: JavadocDesktopDirectorySource = {kind: "desktop-directory", path: result.path, unpick: result.unpick, files: files};
+    const source: JavadocDesktopDirectorySource = {kind: "desktop-directory", path: result.path, files: files};
     return source;
 }
 

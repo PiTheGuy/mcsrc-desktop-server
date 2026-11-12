@@ -66,7 +66,21 @@ export async function openAnnotaterProjectOnDesktop() : Promise<{
     }));
 
     if (!result) return null;
+
+    let runtimeLibraries: RuntimeLibrariesConfig | undefined;
+
+    if (result.runtimeLibraries) {
+        const files: File[] = await Promise.all(result.runtimeLibraries.map(async (library: any) => {
+            const response = await fetch(library.url)
+            const blob = await response.blob();
+            return new File([blob], library.name);
+        }));
+        runtimeLibraries = { id: crypto.randomUUID(), files };
+    }
+
     const source = await readDesktopJavadocDirectory(result);
+    if (runtimeLibraries) source.runtimeLibraries = runtimeLibraries;
+    if (result.unpick) source.unpick = result.unpick;
     return { source: source, version: result.version };
 }
 

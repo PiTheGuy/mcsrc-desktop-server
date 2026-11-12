@@ -4,7 +4,7 @@ import { activeJavadocFile } from './JavadocState';
 import { RuntimeLibraries } from './RuntimeLibraries';
 
 export const runtimeLibraryClassNames = activeJavadocFile.pipe(
-    map(file => file?.kind === 'directory' ? file.runtimeLibraries : undefined),
+    map(file => file?.kind === 'directory' || file ?.kind == 'desktop-directory' ? file.runtimeLibraries : undefined),
     distinctUntilChanged((previous, current) => previous?.id === current?.id),
     switchMap(config => {
         const empty = new Set<ClassName>();
