@@ -1,10 +1,16 @@
 import { BehaviorSubject } from "rxjs";
-import type { JavadocDirectorySource, JavadocFileSource, JavadocSource } from "./JavadocStorage";
+import type {
+    JavadocDesktopDirectorySource,
+    JavadocDirectorySource,
+    JavadocFileSource,
+    JavadocSource
+} from "./JavadocStorage";
 
 export const activeJavadocFile = new BehaviorSubject<JavadocSource | null>(null);
 
 type JavadocDecompileState = Pick<JavadocFileSource, "kind">
-    | Pick<JavadocDirectorySource, "kind" | "runtimeLibraries" | "unpick">;
+    | Pick<JavadocDirectorySource, "kind" | "runtimeLibraries" | "unpick">
+    | Pick<JavadocDesktopDirectorySource, "kind" | "runtimeLibraries" | "unpick">
 
 export function javadocAltersDecompileOutput(javadoc: JavadocDecompileState | null | undefined): boolean {
     if (javadoc?.kind !== "directory") return false;
