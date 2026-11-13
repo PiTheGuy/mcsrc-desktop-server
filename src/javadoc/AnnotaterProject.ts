@@ -56,7 +56,7 @@ export async function readAnnotaterDirectory(handle: FileSystemDirectoryHandle):
 }
 
 export async function openAnnotaterProjectOnDesktop() : Promise<{
-    source: JavadocDesktopDirectorySource,
+    source: JavadocDirectorySource,
     version: string;
 } | null> {
     let result = JSON.parse(await sendCefQuery({

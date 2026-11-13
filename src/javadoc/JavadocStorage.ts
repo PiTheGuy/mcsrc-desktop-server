@@ -1,12 +1,14 @@
-import {defer, firstValueFrom, map, shareReplay, tap} from "rxjs";
-import { load } from "../../java/build/generated/teavm/wasm-gc/mcsrc.wasm-runtime.js";
+import {defer, firstValueFrom, shareReplay, tap} from "rxjs";
+import {load} from "../../java/build/generated/teavm/wasm-gc/mcsrc.wasm-runtime.js";
 import mappingsWasm from "../../java/build/generated/teavm/wasm-gc/mcsrc.wasm?url";
-import { collectFiles } from "./DirectoryFiles";
-import type { RuntimeLibrariesConfig } from "./RuntimeLibraries";
-import type { UnpickConfig } from "../workers/decompile/Unpick";
-import type { DeclarationMetadata } from "./editor/JavadocDeclaration";
-import { outerClassName, type ClassName } from "../utils/Names";
+import {collectFiles} from "./DirectoryFiles";
+import type {RuntimeLibrariesConfig} from "./RuntimeLibraries";
+import type {UnpickConfig} from "../workers/decompile/Unpick";
+import type {DeclarationMetadata} from "./editor/JavadocDeclaration";
+import {type ClassName, outerClassName} from "../utils/Names";
 import {sendCefQuery} from "../cef/cef.ts";
+import {DesktopDirectoryHandle} from "../cef/DesktopHandles.ts";
+import {IS_DESKTOP_APP} from "../site.ts";
 
 export type JavadocFormat = "tiny2" | "enigma";
 export const JavadocElementKind = {
@@ -35,17 +37,10 @@ export interface JavadocDirectorySource {
     files: Map<string, string[]>;
     unpick?: UnpickConfig;
     runtimeLibraries?: RuntimeLibrariesConfig;
+    fullPath?: string;
 }
 
-export interface JavadocDesktopDirectorySource {
-    kind: "desktop-directory";
-    path: string;
-    files: Map<string, string[]>;
-    unpick?: UnpickConfig;
-    runtimeLibraries?: RuntimeLibrariesConfig;
-}
-
-export type JavadocSource = JavadocFileSource | JavadocDirectorySource | JavadocDesktopDirectorySource;
+export type JavadocSource = JavadocFileSource | JavadocDirectorySource;
 
 interface JavadocMappingsBridge {
     getDeclarationMetadata(classBytes: ArrayBuffer, methodName: string, descriptor: string): DeclarationMetadata;
@@ -121,7 +116,7 @@ export async function readJavadocDirectory(handle: FileSystemDirectoryHandle): P
     return { kind: "directory", handle, files };
 }
 
-export async function readDesktopJavadocDirectory(result: any) {
+export async function readDesktopJavadocDirectory(result: any) : Promise<JavadocDirectorySource> {
     const mappingsBridge = await getBridge();
     const files = new Map<string, string[]>();
     mappingsBridge.beginJavadocDirectory();
@@ -139,8 +134,7 @@ export async function readDesktopJavadocDirectory(result: any) {
         throw error;
     }
 
-    const source: JavadocDesktopDirectorySource = {kind: "desktop-directory", path: result.path, files: files};
-    return source;
+    return {kind: "directory", handle: new DesktopDirectoryHandle(result.path), files: files, fullPath: result.path};
 }
 
 export async function createJavadocFile(
@@ -163,9 +157,9 @@ export async function writeJavadocSource(source: JavadocSource, owner: ClassName
     const bytes = requireBridge().writeJavadocClass(outerOwner);
     const existingPath = source.files.get(outerOwner);
 
-    if (source.kind === "desktop-directory") {
+    if (IS_DESKTOP_APP && source.fullPath) {
         const path = existingPath?.join("/") ?? `${outerOwner}.mapping`;
-        const fullPath = source.path + "/" + path;
+        const fullPath = source.fullPath + "/" + path;
         await sendCefQuery({
             type: "javadoc",
             action: "write",
@@ -231,6 +225,16 @@ export function setStoredJavadoc(
 }
 
 async function writeBytes(handle: FileSystemFileHandle, bytes: Int8Array): Promise<void> {
+    if ("path" in handle) {
+        await sendCefQuery({
+            type: "file",
+            action: "write",
+            path: handle.path,
+            bytes: Array.from(bytes)
+        })
+        return;
+    }
+
     const writable = await handle.createWritable();
     const output = new Uint8Array(bytes.byteLength);
     output.set(bytes);

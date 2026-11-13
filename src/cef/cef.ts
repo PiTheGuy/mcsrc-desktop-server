@@ -3,10 +3,26 @@ export function sendCefQuery(payload: object) : Promise<string> {
         window.cefQuery({
             request: JSON.stringify(payload),
             onSuccess: resolve,
-            onFailure: (error_code, error_message) => reject(new Error(`query failed (${error_code}): ${error_message}`))
+            onFailure: (error_code, error_message) => reject(new QueryFailedError(error_code, error_message))
         })
     })
 }
+
+export class QueryFailedError extends Error {
+    errorCode : number;
+
+    constructor(errorCode: number, message: string) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+}
+
+export const QueryErrorCode = {
+    GenericError: -2,
+    Canceled: -1,
+    FileNotFound: 1,
+    DirectoryNotEmpty: 2,
+} as const;
 
 type CefProgressMessage =
     | { type: "progress"; progress: number }
