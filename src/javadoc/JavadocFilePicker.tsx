@@ -178,7 +178,7 @@ const JavadocFilePicker = ({ annotaterShortcut = false, onOpen }: {
                     if (!pickerSupported) handleUnsupported();
                 }}
             >
-                {selectedFile?.kind == "desktop-directory" ? "Javadoc mappings" : selectedFile?.handle.name ?? "Javadoc mappings"}
+                {selectedFile?.handle.name ?? "Javadoc mappings"}
                 <DownOutlined />
             </Button>
         </Dropdown>

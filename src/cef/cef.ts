@@ -1,4 +1,6 @@
-export function sendCefQuery(payload: object) : Promise<string> {
+import type {Query} from "./Query.ts";
+
+export function sendCefQuery(payload: Query) : Promise<string> {
     return new Promise((resolve, reject) => {
         window.cefQuery({
             request: JSON.stringify(payload),

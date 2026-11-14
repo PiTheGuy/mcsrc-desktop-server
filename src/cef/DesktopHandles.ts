@@ -89,7 +89,7 @@ export class DesktopDirectoryHandle implements FileSystemDirectoryHandle {
                 type: "file",
                 action: "delete",
                 path: path,
-                recursive: options?.recursive
+                recursive: options?.recursive || false
             }) // TODO error checking
         } catch (error) {
             if (error instanceof QueryFailedError && error.errorCode == QueryErrorCode.FileNotFound) {

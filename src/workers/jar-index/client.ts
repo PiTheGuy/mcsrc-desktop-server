@@ -209,7 +209,6 @@ export class JarIndex {
             members = JSON.parse(await sendCefQuery({
                 type: "index",
                 action: "getMemberData",
-                version: this.minecraftJar.version,
             })).map(parseMemberData);
         } else {
             members = (await Promise.all(this.workers.map(worker => worker.c.getMemberData()))).flat();
@@ -239,7 +238,6 @@ export class JarIndex {
             raw = JSON.parse(await sendCefQuery({
                 type: "index",
                 action: "getClassData",
-                version: this.minecraftJar.version,
             }))
         } else {
             raw = (await Promise.all(this.workers.map(worker => worker.c.getClassData()))).flat();

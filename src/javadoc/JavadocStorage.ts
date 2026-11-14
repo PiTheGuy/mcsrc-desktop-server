@@ -9,6 +9,7 @@ import {type ClassName, outerClassName} from "../utils/Names";
 import {sendCefQuery} from "../cef/cef.ts";
 import {DesktopDirectoryHandle} from "../cef/DesktopHandles.ts";
 import {IS_DESKTOP_APP} from "../site.ts";
+import type {JavadocOpenProjectQueryResult} from "../cef/QueryResults.ts";
 
 export type JavadocFormat = "tiny2" | "enigma";
 export const JavadocElementKind = {
@@ -116,7 +117,7 @@ export async function readJavadocDirectory(handle: FileSystemDirectoryHandle): P
     return { kind: "directory", handle, files };
 }
 
-export async function readDesktopJavadocDirectory(result: any) : Promise<JavadocDirectorySource> {
+export async function readDesktopJavadocDirectory(result: JavadocOpenProjectQueryResult) : Promise<JavadocDirectorySource> {
     const mappingsBridge = await getBridge();
     const files = new Map<string, string[]>();
     mappingsBridge.beginJavadocDirectory();
@@ -229,7 +230,7 @@ async function writeBytes(handle: FileSystemFileHandle, bytes: Int8Array): Promi
         await sendCefQuery({
             type: "file",
             action: "write",
-            path: handle.path,
+            path: handle.path as string,
             bytes: Array.from(bytes)
         })
         return;

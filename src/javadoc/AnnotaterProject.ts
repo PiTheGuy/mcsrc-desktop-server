@@ -1,12 +1,12 @@
 import { collectFiles, getDirectory } from "./DirectoryFiles";
 import {
-    readJavadocDirectory, type JavadocDirectorySource, type JavadocDesktopDirectorySource,
-    readDesktopJavadocDirectory
+    readJavadocDirectory, type JavadocDirectorySource, readDesktopJavadocDirectory
 } from "./JavadocStorage";
 import type { RuntimeLibrariesConfig } from "./RuntimeLibraries";
 import type { UnpickConfig } from "../workers/decompile/Unpick";
 import {sendCefQuery} from "../cef/cef.ts";
 import {alternateFilePicker} from "../logic/Settings.ts";
+import type {JavadocOpenProjectQueryResult} from "../cef/QueryResults.ts";
 
 export interface AnnotaterConfig {
     /** Path to the Enigma mappings subdirectory, relative to the project root. */
@@ -59,7 +59,7 @@ export async function openAnnotaterProjectOnDesktop() : Promise<{
     source: JavadocDirectorySource,
     version: string;
 } | null> {
-    let result = JSON.parse(await sendCefQuery({
+    const result: JavadocOpenProjectQueryResult = JSON.parse(await sendCefQuery({
         type: "javadoc",
         action: "open_project",
         alternateFilePicker: alternateFilePicker.value
@@ -70,7 +70,7 @@ export async function openAnnotaterProjectOnDesktop() : Promise<{
     let runtimeLibraries: RuntimeLibrariesConfig | undefined;
 
     if (result.runtimeLibraries) {
-        const files: File[] = await Promise.all(result.runtimeLibraries.map(async (library: any) => {
+        const files: File[] = await Promise.all(result.runtimeLibraries.map(async library => {
             const response = await fetch(library.url)
             const blob = await response.blob();
             return new File([blob], library.name);
