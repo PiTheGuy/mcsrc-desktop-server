@@ -1,1 +1,1 @@
-export const IS_DESKTOP_APP = "cefQuery" in window;
+export const IS_DESKTOP_APP = typeof window !== "undefined" && "cefQuery" in window;

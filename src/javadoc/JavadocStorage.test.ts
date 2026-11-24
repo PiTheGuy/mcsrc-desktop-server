@@ -22,6 +22,8 @@ vi.mock("../../java/build/generated/teavm/wasm-gc/mcsrc.wasm-runtime.js", () => 
 }));
 vi.mock("../../java/build/generated/teavm/wasm-gc/mcsrc.wasm?url", () => ({ default: "test.wasm" }));
 
+vi.mock("../logic/Settings.ts", () => ({ alternateFilePicker: { value: false } }));
+
 import {
     readJavadocDeclarationMetadata,
     readJavadocDirectory,
